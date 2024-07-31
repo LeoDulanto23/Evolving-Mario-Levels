@@ -71,13 +71,38 @@ class Individual_Grid(object):
         right = width - 1
         for y in range(height):
             for x in range(left, right):
-                if random.random() > 0.1:
+                if random.random() > 0.3:
                     if y == 15:
-                        genome[y][x] = "X" # ground
-                    elif random.random() > 0.4:
-                        genome[y][x] = "-" # empty space
+                        if random.random() > 0.2:
+                            genome[y][x] = "X" # ground
+                        else:
+                            genome[y][x] = '-'
+                    elif y < 12:
+                        option_weights = (
+                             8, # empty space
+                            .3, # solid wall
+                            .2, # question mark with coin
+                            .15, # question mark with mushroom
+                            .2, # breakable block
+                            .3, # coin
+                            0, # pipe segment
+                            0, # pipe top
+                            .15 # enemy
+                        )
+                        genome[y][x] = random.choices(options, weights=option_weights, k=1)[0]
                     else:
-                        genome[y][x] = random.choice(options)
+                        option_weights = (
+                             3, # empty space
+                            .3, # solid wall
+                            .2, # question mark with coin
+                            .15, # question mark with mushroom
+                            .2, # breakable block
+                            .3, # coin
+                            .1, # pipe segment
+                            .5, # pipe top
+                            .15 # enemy
+                        )
+                        genome[y][x] = random.choices(options, weights=option_weights, k=1)[0]
         return genome
 
     # Create zero or more children from self and other
@@ -85,26 +110,21 @@ class Individual_Grid(object):
         new_genome = copy.deepcopy(self.genome)
         # Leaving first and last columns alone...
         # do crossover with other
-        crossover_genome = []
         left = 1
         right = width - 1
         for y in range(height):
-            row = []
             for x in range(left, right):
                 # STUDENT Which one should you take?  Self, or other?  Why?
                 # STUDENT consider putting more constraints on this to prevent pipes in the air, etc
                 # uniform crossover
                 n = random.choice([0, 1])
                 if (n == 1): 
-                    row.append(self.genome[y][x])
+                    new_genome[y][x] = (self.genome[y][x])
                 else:
-                    row.append(other.genome[y][x])
-            crossover_genome.append(row)
-        for i in range(len(crossover_genome)):
-            crossover_genome[i].insert(0, new_genome[0][0])
-            crossover_genome[i].insert(-1, new_genome[-1][0])
+                    new_genome[y][x] = (other.genome[y][x])
+       
         # do mutation; note we're returning a one-element tuple here
-        new_genome = self.mutate(crossover_genome)
+        new_genome = self.mutate(new_genome)
         return (Individual_Grid(new_genome),)
 
     # Turn the genome into a level string (easy for this genome)
@@ -375,11 +395,14 @@ def generate_successors(population):
         individual_one = max(tournament, key=lambda x: x._fitness)
 
         # roulette
-        probability = []
+        # probability = []
+        # for i in range(len(population)):
+        #     probability.append(abs(population[i]._fitness/total_fitness))
+        # individual_two = random.choices(population, weights=tuple(probability), k=1)[0]
 
-        for i in range(len(population)):
-            probability.append(abs(population[i]._fitness/total_fitness))
-        individual_two = random.choices(population, weights=tuple(probability), k=1)[0]
+        # random selection
+        individual_two = random.choice(population)
+
         results.append(Individual.generate_children(individual_one, individual_two)[0])
     return results
 
