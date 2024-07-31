@@ -67,12 +67,17 @@ class Individual_Grid(object):
         # STUDENT implement a mutation operator, also consider not mutating this individual
         # STUDENT also consider weighting the different tile types so it's not uniformly random
         # STUDENT consider putting more constraints on this to prevent pipes in the air, etc
-
         left = 1
         right = width - 1
         for y in range(height):
             for x in range(left, right):
-                pass
+                if random.random() > 0.1:
+                    if y == 15:
+                        genome[y][x] = "X" # ground
+                    elif random.random() > 0.4:
+                        genome[y][x] = "-" # empty space
+                    else:
+                        genome[y][x] = random.choice(options)
         return genome
 
     # Create zero or more children from self and other
@@ -80,14 +85,26 @@ class Individual_Grid(object):
         new_genome = copy.deepcopy(self.genome)
         # Leaving first and last columns alone...
         # do crossover with other
+        crossover_genome = []
         left = 1
         right = width - 1
         for y in range(height):
+            row = []
             for x in range(left, right):
                 # STUDENT Which one should you take?  Self, or other?  Why?
                 # STUDENT consider putting more constraints on this to prevent pipes in the air, etc
-                pass
+                # uniform crossover
+                n = random.choice([0, 1])
+                if (n == 1): 
+                    row.append(self.genome[y][x])
+                else:
+                    row.append(other.genome[y][x])
+            crossover_genome.append(row)
+        for i in range(len(crossover_genome)):
+            crossover_genome[i].insert(0, new_genome[0][0])
+            crossover_genome[i].insert(-1, new_genome[-1][0])
         # do mutation; note we're returning a one-element tuple here
+        new_genome = self.mutate(crossover_genome)
         return (Individual_Grid(new_genome),)
 
     # Turn the genome into a level string (easy for this genome)
@@ -98,6 +115,7 @@ class Individual_Grid(object):
     # STUDENT Feel free to change these
     @classmethod
     def empty_individual(cls):
+        # returns empty level
         g = [["-" for col in range(width)] for row in range(height)]
         g[15][:] = ["X"] * width
         g[14][0] = "m"
@@ -112,6 +130,7 @@ class Individual_Grid(object):
     def random_individual(cls):
         # STUDENT consider putting more constraints on this to prevent pipes in the air, etc
         # STUDENT also consider weighting the different tile types so it's not uniformly random
+        # returns a 200 by 16 array of random things from options
         g = [random.choices(options, k=width) for row in range(height)]
         g[15][:] = ["X"] * width
         g[14][0] = "m"
@@ -345,8 +364,23 @@ Individual = Individual_Grid
 
 def generate_successors(population):
     results = []
+    total_fitness = 0
+    for i in range(len(population)):
+        total_fitness += population[i]._fitness
     # STUDENT Design and implement this
     # Hint: Call generate_children() on some individuals and fill up results.
+    for _ in range(len(population)):
+        # tournament selection
+        tournament = random.sample(population, math.ceil(len(population)/3))
+        individual_one = max(tournament, key=lambda x: x._fitness)
+
+        # roulette
+        probability = []
+
+        for i in range(len(population)):
+            probability.append(abs(population[i]._fitness/total_fitness))
+        individual_two = random.choices(population, weights=tuple(probability), k=1)[0]
+        results.append(Individual.generate_children(individual_one, individual_two)[0])
     return results
 
 
@@ -361,6 +395,9 @@ def ga():
     with mpool.Pool(processes=os.cpu_count()) as pool:
         init_time = time.time()
         # STUDENT (Optional) change population initialization
+        # 90% to generate random individual
+        # 10% chance for empty
+        # population is 480 levels, 90% of them being random, 10% being empty levels
         population = [Individual.random_individual() if random.random() < 0.9
                       else Individual.empty_individual()
                       for _g in range(pop_limit)]
