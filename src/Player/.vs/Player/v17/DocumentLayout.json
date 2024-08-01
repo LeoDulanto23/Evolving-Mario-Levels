@@ -1,0 +1,54 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\CMPM146\\Evolving-Mario-Levels\\src\\Player\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{D55E595C-D8AC-B8C1-F1BC-BCC3B1DCE059}|Assembly-CSharp.csproj|d:\\cmpm146\\evolving-mario-levels\\src\\player\\assets\\resources\\levels\\level1.txt||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{D55E595C-D8AC-B8C1-F1BC-BCC3B1DCE059}|Assembly-CSharp.csproj|solutionrelative:assets\\resources\\levels\\level1.txt||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D55E595C-D8AC-B8C1-F1BC-BCC3B1DCE059}|Assembly-CSharp.csproj|d:\\cmpm146\\evolving-mario-levels\\src\\player\\assets\\scripts\\level\\smblevelparser.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D55E595C-D8AC-B8C1-F1BC-BCC3B1DCE059}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\level\\smblevelparser.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Level1.txt",
+              "DocumentMoniker": "D:\\CMPM146\\Evolving-Mario-Levels\\src\\Player\\Assets\\Resources\\Levels\\Level1.txt",
+              "RelativeDocumentMoniker": "Assets\\Resources\\Levels\\Level1.txt",
+              "ToolTip": "D:\\CMPM146\\Evolving-Mario-Levels\\src\\Player\\Assets\\Resources\\Levels\\Level1.txt",
+              "RelativeToolTip": "Assets\\Resources\\Levels\\Level1.txt",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003109|",
+              "WhenOpened": "2024-07-31T20:49:34.785Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "SMBLevelParser.cs",
+              "DocumentMoniker": "D:\\CMPM146\\Evolving-Mario-Levels\\src\\Player\\Assets\\Scripts\\Level\\SMBLevelParser.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\Level\\SMBLevelParser.cs",
+              "ToolTip": "D:\\CMPM146\\Evolving-Mario-Levels\\src\\Player\\Assets\\Scripts\\Level\\SMBLevelParser.cs",
+              "RelativeToolTip": "Assets\\Scripts\\Level\\SMBLevelParser.cs",
+              "ViewState": "AQIAADQAAAAAAAAAAAAcwAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-07-31T20:42:45.221Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

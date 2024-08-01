@@ -50,7 +50,7 @@ class Individual_Grid(object):
             pathPercentage=0.5,
             emptyPercentage=0.6,
             linearity=-0.5,
-            solvability=2.0
+            solvability=3.0
         )
         self._fitness = sum(map(lambda m: coefficients[m] * measurements[m],
                                 coefficients))
@@ -63,24 +63,65 @@ class Individual_Grid(object):
         return self._fitness
 
     # Mutate a genome into a new genome.  Note that this is a _genome_, not an individual!
-    # genome: represents a Mario Level
     def mutate(self, genome):
         # STUDENT implement a mutation operator, also consider not mutating this individual
         # STUDENT also consider weighting the different tile types so it's not uniformly random
         # STUDENT consider putting more constraints on this to prevent pipes in the air, etc
-        mutation_probability = 0.01  # Probability of mutating each tile
         left = 1
         right = width - 1
         for y in range(height):
             for x in range(left, right):
-                if random.random() < mutation_probability:
-                    # Ensure pipes are not floating in the air, etc.
-                    valid_tile = False
-                    while not valid_tile:
-                        new_tile = random.choices(self.tile_types, weights=[1, 2, 1, 1, 1])[0]  # Adjust weights as needed
-                        if self.is_valid_tile(x, y, new_tile, genome):
-                            genome[y][x] = new_tile
-                            valid_tile = True
+                if random.random() > 0.3:
+                    if y == 15:
+                        if random.random() > 0.2:
+                            genome[y][x] = "X" # ground
+                        else:
+                            genome[y][x] = '-'
+                            for i in range(height):
+                                genome[i][x] = '-'
+                    elif y > 12 and (genome[y-1][x] == "T" or genome[y-1][x] == "|"):
+                        genome[y][x] = '|'
+                    elif y >= 12 and x <= 5:
+                        genome[y][x] = '-'
+                    elif y < 12:
+                        option_weights = (
+                             8, # empty space
+                            .3, # solid wall
+                            .2, # question mark with coin
+                            .15, # question mark with mushroom
+                            .2, # breakable block
+                            .3, # coin
+                            0, # pipe segment
+                            0, # pipe top
+                            .15 # enemy
+                        )
+                        genome[y][x] = random.choices(options, weights=option_weights, k=1)[0]
+                    elif y >= 13:
+                        option_weights = (
+                             6, # empty space
+                            .3, # solid wall
+                            .2, # question mark with coin
+                            .15, # question mark with mushroom
+                            .2, # breakable block
+                            .3, # coin
+                             0, # pipe segment
+                            .5, # pipe top
+                            .5 # enemy
+                        )
+                        genome[y][x] = random.choices(options, weights=option_weights, k=1)[0]
+                    else:
+                        option_weights = (
+                             3, # empty space
+                            .3, # solid walls
+                            .2, # question mark with coin
+                            .15, # question mark with mushroom
+                            .2, # breakable block
+                            .3, # coin
+                             0, # pipe segment
+                             0, # pipe top
+                            .15 # enemy
+                        )
+                        genome[y][x] = random.choices(options, weights=option_weights, k=1)[0]
         return genome
 
     # Create zero or more children from self and other
@@ -94,8 +135,15 @@ class Individual_Grid(object):
             for x in range(left, right):
                 # STUDENT Which one should you take?  Self, or other?  Why?
                 # STUDENT consider putting more constraints on this to prevent pipes in the air, etc
-                pass
+                # uniform crossover
+                n = random.choice([0, 1])
+                if (n == 1): 
+                    new_genome[y][x] = (self.genome[y][x])
+                else:
+                    new_genome[y][x] = (other.genome[y][x])
+       
         # do mutation; note we're returning a one-element tuple here
+        new_genome = self.mutate(new_genome)
         return (Individual_Grid(new_genome),)
 
     # Turn the genome into a level string (easy for this genome)
@@ -106,6 +154,7 @@ class Individual_Grid(object):
     # STUDENT Feel free to change these
     @classmethod
     def empty_individual(cls):
+        # returns empty level
         g = [["-" for col in range(width)] for row in range(height)]
         g[15][:] = ["X"] * width
         g[14][0] = "m"
@@ -120,6 +169,7 @@ class Individual_Grid(object):
     def random_individual(cls):
         # STUDENT consider putting more constraints on this to prevent pipes in the air, etc
         # STUDENT also consider weighting the different tile types so it's not uniformly random
+        # returns a 200 by 16 array of random things from options
         g = [random.choices(options, k=width) for row in range(height)]
         g[15][:] = ["X"] * width
         g[14][0] = "m"
@@ -348,13 +398,34 @@ class Individual_DE(object):
         return Individual_DE(g)
 
 
-Individual = Individual_Grid
+Individual = Individual_DE 
 
 
 def generate_successors(population):
     results = []
+    total_fitness = 0
+    for i in range(len(population)):
+        total_fitness += population[i]._fitness
     # STUDENT Design and implement this
     # Hint: Call generate_children() on some individuals and fill up results.
+    for _ in range(len(population)):
+        # tournament selection
+        tournament = random.sample(population, math.ceil(len(population)/2))
+        individual_one = max(tournament, key=lambda x: x._fitness)
+        while len(individual_one.genome) == 0:
+            tournament = random.sample(population, math.ceil(len(population)/2))
+            individual_one = max(tournament, key=lambda x: x._fitness)
+
+        # roulette
+        probability = []
+        for i in range(len(population)):
+            probability.append(abs(population[i]._fitness/total_fitness))
+        individual_two = random.choices(population, weights=tuple(probability), k=1)[0]
+        while len(individual_two.genome) == 0:
+            individual_two = random.choices(population, weights=tuple(probability), k=1)[0]
+
+
+        results.append(Individual.generate_children(individual_one, individual_two)[0])
     return results
 
 
@@ -369,6 +440,9 @@ def ga():
     with mpool.Pool(processes=os.cpu_count()) as pool:
         init_time = time.time()
         # STUDENT (Optional) change population initialization
+        # 90% to generate random individual
+        # 10% chance for empty
+        # population is 480 levels, 90% of them being random, 10% being empty levels
         population = [Individual.random_individual() if random.random() < 0.9
                       else Individual.empty_individual()
                       for _g in range(pop_limit)]
