@@ -209,35 +209,61 @@ class Individual_DE(object):
         self._fitness = None
         self._level = None
 
-    # Calculate and cache fitness
-    def calculate_fitness(self):
-        measurements = metrics.metrics(self.to_level())
-        # Default fitness function: Just some arbitrary combination of a few criteria.  Is it good?  Who knows?
-        # STUDENT Add more metrics?
-        # STUDENT Improve this with any code you like
-        coefficients = dict(
-            meaningfulJumpVariance=0.5,
-            negativeSpace=0.6,
-            pathPercentage=0.5,
-            emptyPercentage=0.6,
-            linearity=-0.5,
-            solvability=2.0
-        )
-        penalties = 0
-        # STUDENT For example, too many stairs are unaesthetic.  Let's penalize that
-        if len(list(filter(lambda de: de[1] == "6_stairs", self.genome))) > 5:
-            penalties -= 2
-        # STUDENT If you go for the FI-2POP extra credit, you can put constraint calculation in here too and cache it in a new entry in __slots__.
-        self._fitness = sum(map(lambda m: coefficients[m] * measurements[m],
-                                coefficients)) + penalties
-        return self
+def calculate_fitness(self):
+    measurements = metrics.metrics(self.to_level())
+    
+    # Refined coefficients for metrics
+    coefficients = dict(
+        meaningfulJumpVariance=0.7,
+        negativeSpace=0.5,
+        pathPercentage=0.6,
+        emptyPercentage=0.4,
+        linearity=-0.3,
+        solvability=2.0,
+        decorationPercentage=0.4,  # Example additional metric
+        meaningfulJumps=0.3,       # Example additional metric
+        jumpVariance=0.2           # Example additional metric
+    )
+    
+    penalties = 0
+    
+    # Example penalty for too many stairs
+    num_stairs = len([de for de in self.genome if de[1] == "6_stairs"])
+    if num_stairs > 5:
+        penalties -= 2 * (num_stairs - 5)  # Increase penalty with excess stairs
+    
+    # Example penalty for high negative space
+    if measurements["negativeSpace"] > 0.5:
+        penalties -= 1
+    
+    # Example bonus for a balanced number of meaningful jumps
+    if 3 <= measurements["meaningfulJumps"] <= 7:
+        penalties += 1
+    
+    # Example penalty for high linearity
+    if measurements["linearity"] > 0.8:
+        penalties -= 1
+    
+    # Example bonus for high path percentage and solvability
+    if measurements["solvability"] == 1 and measurements["pathPercentage"] > 0.8:
+        penalties += 2
+    
+    # Implement FI-2POP constraints if needed (for extra credit)
+    # if self.use_fi2pop:
+    #     constraints = self.calculate_constraints()
+    #     penalties += constraints["bonus_or_penalty"]
+    
+    # Calculate final fitness score
+    self._fitness = sum(map(lambda m:coefficients[m] * measurements[m] for m in coefficients)) + penalties
+    return self
 
-    def fitness(self):
+
+def fitness(self):
         if self._fitness is None:
             self.calculate_fitness()
         return self._fitness
 
-    def mutate(self, new_genome):
+def mutate(self, new_genome):
         # STUDENT How does this work?  Explain it in your writeup.
         # STUDENT consider putting more constraints on this, to prevent generating weird things
         if random.random() < 0.1 and len(new_genome) > 0:
@@ -317,7 +343,7 @@ class Individual_DE(object):
             heapq.heappush(new_genome, new_de)
         return new_genome
 
-    def generate_children(self, other):
+def generate_children(self, other):
         # STUDENT How does this work?  Explain it in your writeup.
         pa = random.randint(0, len(self.genome) - 1)
         pb = random.randint(0, len(other.genome) - 1)
@@ -331,7 +357,7 @@ class Individual_DE(object):
         return Individual_DE(self.mutate(ga)), Individual_DE(self.mutate(gb))
 
     # Apply the DEs to a base level.
-    def to_level(self):
+def to_level(self):
         if self._level is None:
             base = Individual_Grid.empty_individual().to_level()
             for de in sorted(self.genome, key=lambda de: (de[1], de[0], de)):
@@ -375,14 +401,14 @@ class Individual_DE(object):
             self._level = base
         return self._level
 
-    @classmethod
-    def empty_individual(_cls):
+@classmethod
+def empty_individual(_cls):
         # STUDENT Maybe enhance this
         g = []
         return Individual_DE(g)
 
-    @classmethod
-    def random_individual(_cls):
+@classmethod
+def random_individual(_cls):
         # STUDENT Maybe enhance this
         elt_count = random.randint(8, 128)
         g = [random.choice([
@@ -408,6 +434,7 @@ def generate_successors(population):
         total_fitness += population[i]._fitness
     # STUDENT Design and implement this
     # Hint: Call generate_children() on some individuals and fill up results.
+    
     for _ in range(len(population)):
         # tournament selection
         tournament = random.sample(population, math.ceil(len(population)/2))

@@ -2,6 +2,17 @@ import pathfinding
 import numpy as np
 import sys
 
+def decoration_percentage(level):
+    # Implementation for calculating decoration percentage
+    return sum(1 for cell in level if cell in ['?', 'B']) / len(level)
+
+def meaningful_jumps(level):
+    # Implementation for calculating meaningful jumps
+    return sum(1 for cell in level if cell == 'o')
+
+def jump_variance(level):
+    # Implementation for calculating jump variance
+    return np.var([i for i, cell in enumerate(level) if cell == 'o'])
 
 def metrics(levelStr):
     maxY = len(levelStr)
