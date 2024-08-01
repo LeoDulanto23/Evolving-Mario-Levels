@@ -50,7 +50,7 @@ class Individual_Grid(object):
             pathPercentage=0.5,
             emptyPercentage=0.6,
             linearity=-0.5,
-            solvability=2.0
+            solvability=3.0
         )
         self._fitness = sum(map(lambda m: coefficients[m] * measurements[m],
                                 coefficients))
@@ -77,6 +77,12 @@ class Individual_Grid(object):
                             genome[y][x] = "X" # ground
                         else:
                             genome[y][x] = '-'
+                            for i in range(height):
+                                genome[i][x] = '-'
+                    elif y > 12 and (genome[y-1][x] == "T" or genome[y-1][x] == "|"):
+                        genome[y][x] = '|'
+                    elif y >= 12 and x <= 5:
+                        genome[y][x] = '-'
                     elif y < 12:
                         option_weights = (
                              8, # empty space
@@ -90,16 +96,29 @@ class Individual_Grid(object):
                             .15 # enemy
                         )
                         genome[y][x] = random.choices(options, weights=option_weights, k=1)[0]
-                    else:
+                    elif y >= 13:
                         option_weights = (
-                             3, # empty space
+                             6, # empty space
                             .3, # solid wall
                             .2, # question mark with coin
                             .15, # question mark with mushroom
                             .2, # breakable block
                             .3, # coin
-                            .1, # pipe segment
+                             0, # pipe segment
                             .5, # pipe top
+                            .5 # enemy
+                        )
+                        genome[y][x] = random.choices(options, weights=option_weights, k=1)[0]
+                    else:
+                        option_weights = (
+                             3, # empty space
+                            .3, # solid walls
+                            .2, # question mark with coin
+                            .15, # question mark with mushroom
+                            .2, # breakable block
+                            .3, # coin
+                             0, # pipe segment
+                             0, # pipe top
                             .15 # enemy
                         )
                         genome[y][x] = random.choices(options, weights=option_weights, k=1)[0]
@@ -391,17 +410,14 @@ def generate_successors(population):
     # Hint: Call generate_children() on some individuals and fill up results.
     for _ in range(len(population)):
         # tournament selection
-        tournament = random.sample(population, math.ceil(len(population)/3))
+        tournament = random.sample(population, math.ceil(len(population)/2))
         individual_one = max(tournament, key=lambda x: x._fitness)
 
         # roulette
-        # probability = []
-        # for i in range(len(population)):
-        #     probability.append(abs(population[i]._fitness/total_fitness))
-        # individual_two = random.choices(population, weights=tuple(probability), k=1)[0]
-
-        # random selection
-        individual_two = random.choice(population)
+        probability = []
+        for i in range(len(population)):
+            probability.append(abs(population[i]._fitness/total_fitness))
+        individual_two = random.choices(population, weights=tuple(probability), k=1)[0]
 
         results.append(Individual.generate_children(individual_one, individual_two)[0])
     return results
