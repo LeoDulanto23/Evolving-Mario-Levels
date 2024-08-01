@@ -63,16 +63,24 @@ class Individual_Grid(object):
         return self._fitness
 
     # Mutate a genome into a new genome.  Note that this is a _genome_, not an individual!
+    # genome: represents a Mario Level
     def mutate(self, genome):
         # STUDENT implement a mutation operator, also consider not mutating this individual
         # STUDENT also consider weighting the different tile types so it's not uniformly random
         # STUDENT consider putting more constraints on this to prevent pipes in the air, etc
-
+        mutation_probability = 0.01  # Probability of mutating each tile
         left = 1
         right = width - 1
         for y in range(height):
             for x in range(left, right):
-                pass
+                if random.random() < mutation_probability:
+                    # Ensure pipes are not floating in the air, etc.
+                    valid_tile = False
+                    while not valid_tile:
+                        new_tile = random.choices(self.tile_types, weights=[1, 2, 1, 1, 1])[0]  # Adjust weights as needed
+                        if self.is_valid_tile(x, y, new_tile, genome):
+                            genome[y][x] = new_tile
+                            valid_tile = True
         return genome
 
     # Create zero or more children from self and other
