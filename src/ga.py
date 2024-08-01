@@ -398,7 +398,7 @@ class Individual_DE(object):
         return Individual_DE(g)
 
 
-Individual = Individual_Grid
+Individual = Individual_DE 
 
 
 def generate_successors(population):
@@ -412,12 +412,18 @@ def generate_successors(population):
         # tournament selection
         tournament = random.sample(population, math.ceil(len(population)/2))
         individual_one = max(tournament, key=lambda x: x._fitness)
+        while len(individual_one.genome) == 0:
+            tournament = random.sample(population, math.ceil(len(population)/2))
+            individual_one = max(tournament, key=lambda x: x._fitness)
 
         # roulette
         probability = []
         for i in range(len(population)):
             probability.append(abs(population[i]._fitness/total_fitness))
         individual_two = random.choices(population, weights=tuple(probability), k=1)[0]
+        while len(individual_two.genome) == 0:
+            individual_two = random.choices(population, weights=tuple(probability), k=1)[0]
+
 
         results.append(Individual.generate_children(individual_one, individual_two)[0])
     return results
